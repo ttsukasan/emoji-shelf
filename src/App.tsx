@@ -112,6 +112,12 @@ export function App() {
         )}
       </main>
 
+      <footer class="foot">
+        <a href="https://github.com/ttsukasan/emoji-shelf" target="_blank" rel="noopener noreferrer">
+          ttsukasan/emoji-shelf
+        </a>
+      </footer>
+
       {pop && (
         <div
           key={pop.id}
