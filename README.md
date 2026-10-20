@@ -1,5 +1,7 @@
 # emoji shelf
 
+公開URL: https://ttsukasan.github.io/emoji-shelf/
+
 広告なし・ログインなし・保存なしの絵文字一覧。クリックで絵文字をコピーできます。
 各絵文字の下にSlackでの名前(`cry`, `innocent` など)を表示し、日本語・英語・Slack名で検索できます。
 
