@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'preact/hooks'
+import { useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
 import data from './data/emoji.json'
 import { copyText } from './lib/clipboard'
 import { normQuery } from './lib/search'
@@ -12,6 +12,7 @@ const items = (data.items as unknown as Item[]).filter((it) => isSupported(it[4]
 interface Pop {
   id: number
   text: string
+  name: string
   x: number
   y: number
   below: boolean
@@ -38,6 +39,7 @@ export function App() {
   const [pop, setPop] = useState<Pop | null>(null)
   const timer = useRef<number | undefined>(undefined)
   const popId = useRef(0)
+  const popEl = useRef<HTMLDivElement>(null)
 
   const q = normQuery(query)
   const byGroup = useMemo(() => {
@@ -47,24 +49,32 @@ export function App() {
     }
     return result
   }, [q])
+  // メッセージの幅は内容で変わるので、描画後に画面からはみ出さないよう補正する
+  useLayoutEffect(() => {
+    const el = popEl.current
+    if (!el || !pop) return
+    const half = el.offsetWidth / 2
+    el.style.left = `${Math.min(Math.max(pop.x, half + 6), window.innerWidth - half - 6)}px`
+  }, [pop])
+
   const total = byGroup.reduce((n, g) => n + g.length, 0)
 
-  const onCopy = async (e: MouseEvent, emoji: string) => {
+  const onCopy = async (e: MouseEvent, emoji: string, name: string) => {
     const el = e.currentTarget as HTMLElement
     const r = el.getBoundingClientRect()
     const ok = await copyText(emoji)
-    const margin = 52
-    const x = Math.min(Math.max(r.left + r.width / 2, margin), window.innerWidth - margin)
+    const x = r.left + r.width / 2
     const below = r.top < 90
     setPop({
       id: ++popId.current,
       text: ok ? 'コピーしました' : 'コピーできませんでした',
+      name: ok ? name : '',
       x,
       y: below ? r.bottom + 4 : r.top - 4,
       below,
     })
     window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => setPop(null), 1000)
+    timer.current = window.setTimeout(() => setPop(null), 1600)
   }
 
   return (
@@ -101,7 +111,7 @@ export function App() {
                 </h2>
                 <div class="grid">
                   {byGroup[gi].map((it) => (
-                    <button key={it[0]} class="cell" type="button" onClick={(e) => onCopy(e, it[0])}>
+                    <button key={it[0]} class="cell" type="button" onClick={(e) => onCopy(e, it[0], it[1])}>
                       <span class="emoji">{it[0]}</span>
                       <span class="name">{it[1] && <SlackName name={it[1]} />}</span>
                     </button>
@@ -121,11 +131,13 @@ export function App() {
       {pop && (
         <div
           key={pop.id}
+          ref={popEl}
           class={`pop${pop.below ? ' below' : ''}`}
           style={{ left: `${pop.x}px`, top: `${pop.y}px` }}
           role="status"
         >
-          {pop.text}
+          <span>{pop.text}</span>
+          {pop.name && <span class="pop-name">:{pop.name}:</span>}
         </div>
       )}
     </>
