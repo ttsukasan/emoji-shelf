@@ -2,10 +2,12 @@ import { useMemo, useRef, useState } from 'preact/hooks'
 import data from './data/emoji.json'
 import { copyText } from './lib/clipboard'
 import { normQuery } from './lib/search'
+import { isSupported } from './lib/support'
 
-type Item = readonly [emoji: string, slack: string, search: string, group: number]
+type Item = readonly [emoji: string, slack: string, search: string, group: number, version: number]
 const groups = data.groups as string[]
-const items = data.items as unknown as Item[]
+// この環境で描画できない絵文字は最初から除外する
+const items = (data.items as unknown as Item[]).filter((it) => isSupported(it[4]))
 
 interface Pop {
   id: number

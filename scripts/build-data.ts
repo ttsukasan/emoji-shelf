@@ -14,6 +14,7 @@ interface Raw {
   emoji: string
   tags?: string[]
   order?: number
+  version?: number
   group?: number
 }
 
@@ -59,7 +60,7 @@ const items = ja
     const search = norm(
       [e.label, ...(e.tags ?? []), ...[e.label, ...(e.tags ?? [])].map(reading), enE?.label ?? '', ...(enE?.tags ?? []), ...names].join(' '),
     )
-    return [e.emoji, names[0] ?? '', search, groupIndex.get(e.group!)!] as const
+    return [e.emoji, names[0] ?? '', search, groupIndex.get(e.group!)!, e.version ?? 0] as const
   })
 
 mkdirSync(join(root, 'src/data'), { recursive: true })
